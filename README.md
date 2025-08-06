@@ -47,16 +47,75 @@ git config --global user.email "your.email@example.com"
 ### 2. Set Up GitHub Authentication
 
 #### Option A: Using Personal Access Token (Recommended)
-1. Go to GitHub → Settings → Developer settings → Personal access tokens
-2. Click "Generate new token (classic)"
-3. Select scopes: `repo` (full control of private repositories)
-4. Copy the generated token
-5. Configure git to use the token:
+
+1. **Generate a Personal Access Token on GitHub:**
+   - Go to GitHub → Settings → Developer settings → Personal access tokens
+   - Click "Generate new token (classic)" 
+   - Add a descriptive note (e.g., "deployment-tools")
+   - Select scopes: `repo` (full control of private repositories)
+   - Click "Generate token" at the bottom
+   - **IMPORTANT:** Copy the generated token immediately (you won't be able to see it again!)
+
+2. **Configure Git to Store Credentials:**
    ```bash
    git config --global credential.helper store
-   # Next git push will prompt for username and password
-   # Use your GitHub username and the token as password
    ```
+   This tells git to save your credentials in a file (~/.git-credentials) after the first successful authentication.
+
+3. **Trigger Authentication:**
+   
+   **Method 1 - Test with a push (if you have commits ready):**
+   ```bash
+   git push origin main
+   # Git will prompt:
+   # Username for 'https://github.com': your-github-username
+   # Password for 'https://your-github-username@github.com': paste-your-token-here
+   ```
+
+   **Method 2 - Test with a fetch (safer, no changes needed):**
+   ```bash
+   git fetch origin
+   # Git will prompt:
+   # Username for 'https://github.com': your-github-username  
+   # Password for 'https://your-github-username@github.com': paste-your-token-here
+   ```
+
+   **Method 3 - Manually store credentials (immediate):**
+   ```bash
+   # Replace USERNAME with your GitHub username and TOKEN with your personal access token
+   echo "https://USERNAME:TOKEN@github.com" >> ~/.git-credentials
+   
+   # Set proper permissions (important for security!)
+   chmod 600 ~/.git-credentials
+   ```
+
+4. **Verify Authentication:**
+   ```bash
+   # This should work without prompting for credentials
+   git ls-remote origin
+   ```
+
+5. **Security Notes:**
+   - The token is stored in plain text in `~/.git-credentials`
+   - On macOS, consider using the keychain helper instead:
+     ```bash
+     git config --global credential.helper osxkeychain
+     ```
+   - On Windows, use the Windows Credential Manager:
+     ```bash
+     git config --global credential.helper manager
+     ```
+   - To remove stored credentials later:
+     ```bash
+     git config --global --unset credential.helper
+     rm ~/.git-credentials
+     ```
+
+**Troubleshooting:**
+- If authentication fails, make sure you're using the token as the password, NOT your GitHub account password
+- Personal access tokens look like: `ghp_xxxxxxxxxxxxxxxxxxxx`
+- If you see "remote: Support for password authentication was removed", you're using your account password instead of the token
+- For private repositories, ensure your token has the `repo` scope selected
 
 #### Option B: Using SSH Keys
 1. Generate SSH key:
